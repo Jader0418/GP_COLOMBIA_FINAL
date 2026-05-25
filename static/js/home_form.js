@@ -89,6 +89,22 @@ if (error) {
             });
             break;
 
+        case "telefono_invalido":
+            mostrarAlerta({
+                title: "TELÉFONO INVÁLIDO",
+                text: "El teléfono debe tener exactamente 10 dígitos numéricos.",
+                icon: "warning"
+            });
+            break;
+
+        case "email_invalido":
+            mostrarAlerta({
+                title: "CORREO INVÁLIDO",
+                text: "El correo debe incluir un @ y tener formato válido.",
+                icon: "warning"
+            });
+            break;
+
         default:
             mostrarAlerta({
                 title: "ERROR",

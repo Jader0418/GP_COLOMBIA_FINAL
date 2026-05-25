@@ -206,14 +206,54 @@ function verDetalle(id) {
     document.getElementById('modalExperiencia').textContent =
         competidor.experiencia === 'si' ? '✓ CON EXPERIENCIA' : '✗ SIN EXPERIENCIA';
 
-    // Abrir modal
+    // Abrir modal detalle
     const overlay = document.getElementById('modalOverlay');
     overlay.classList.add('activo');
     document.body.style.overflow = 'hidden';
 }
 
-function cerrarModal() {
-    const overlay = document.getElementById('modalOverlay');
+function mostrarAlertaCarreras({ title, text, icon }) {
+    if (typeof Swal === 'undefined' || !Swal?.fire) {
+        window.alert(`${title}\n\n${text}`);
+        return;
+    }
+
+    Swal.fire({
+        title,
+        text,
+        icon,
+        confirmButtonText: 'ENTENDIDO',
+        confirmButtonColor: '#e10600',
+        allowOutsideClick: false
+    });
+}
+
+function abrirModalEditar(id) {
+    const competidor = todosLosCompetidores.find(c => c.id === id);
+    if (!competidor) return;
+
+    const form = document.getElementById('formEditarCompetidor');
+    form.action = `/update_competidor/${id}`;
+    document.getElementById('editarFullName').value = competidor.nombre_completo || '';
+    document.getElementById('editarDocumentType').value = competidor.tipo_documento || '';
+    document.getElementById('editarDocumentNumber').value = competidor.numero_documento || '';
+    document.getElementById('editarBirthDate').value = competidor.fecha_nacimiento || '';
+    document.getElementById('editarCity').value = competidor.ciudad || '';
+    document.getElementById('editarPhone').value = competidor.telefono || '';
+    document.getElementById('editarEmail').value = competidor.correo || '';
+    document.getElementById('editarTeam').value = competidor.equipo || '';
+    document.getElementById('editarExperience').value = competidor.experiencia || '';
+    document.getElementById('editarMotorcycleBrand').value = competidor.marca_motocicleta || '';
+    document.getElementById('editarMotorcycleModel').value = competidor.modelo_motocicleta || '';
+    document.getElementById('editarEngineCc').value = competidor.cilindraje_motor || '';
+    document.getElementById('editarCompetitorNumber').value = competidor.numero_competidor || '';
+
+    document.getElementById('modalEditarOverlay').classList.add('activo');
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalEditar() {
+    const overlay = document.getElementById('modalEditarOverlay');
     overlay.classList.remove('activo');
     document.body.style.overflow = '';
 }
@@ -236,6 +276,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Botones Editar
+    document.querySelectorAll('.btn-editar').forEach(boton => {
+        boton.addEventListener('click', function() {
+            const id = parseInt(this.getAttribute('data-id'));
+            abrirModalEditar(id);
+        });
+    });
+
     // Botones Eliminar
     document.querySelectorAll('.btn-eliminar').forEach(boton => {
         boton.addEventListener('click', function() {
@@ -244,6 +292,54 @@ document.addEventListener('DOMContentLoaded', function() {
             confirmarEliminar(id, nombre);
         });
     });
+
+    // Mostrar alertas de resultados de operaciones
+    const params = new URLSearchParams(window.location.search);
+    const actualizacion = params.get('actualizacion');
+    const error = params.get('error');
+
+    if (actualizacion === 'exitosa') {
+        mostrarAlertaCarreras({
+            title: 'ACTUALIZACIÓN EXITOSA',
+            text: 'Los datos del competidor se actualizaron correctamente.',
+            icon: 'success'
+        });
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    if (error) {
+        let mensaje = 'Ocurrió un error al procesar la solicitud.';
+        switch (error) {
+            case 'telefono_invalido':
+                mensaje = 'El teléfono debe tener exactamente 10 dígitos numéricos.';
+                break;
+            case 'email_invalido':
+                mensaje = 'El correo debe contener @ y tener formato válido.';
+                break;
+            case 'cedula_existente':
+                mensaje = 'Ya existe un participante con ese documento.';
+                break;
+            case 'numero_competidor_existente':
+                mensaje = 'Ese número de competidor ya está asignado.';
+                break;
+            case 'nombre_existente':
+                mensaje = 'Ya existe un competidor con ese nombre.';
+                break;
+            case 'registro_duplicado':
+                mensaje = 'Algunos datos del competidor ya están registrados en otro perfil.';
+                break;
+            case 'competidor_no_encontrado':
+                mensaje = 'Competidor no encontrado para actualizar.';
+                break;
+        }
+
+        mostrarAlertaCarreras({
+            title: 'ERROR',
+            text: mensaje,
+            icon: 'error'
+        });
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
 });
 
 // ============================================================

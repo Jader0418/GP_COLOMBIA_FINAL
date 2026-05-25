@@ -198,6 +198,13 @@
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
                                 <button 
+                                    class="btn-editar"
+                                    data-id="{{ c.id }}"
+                                    title="Editar competidor"
+                                >
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button 
                                     class="btn-eliminar" 
                                     data-id="{{ c.id }}"
                                     data-nombre="{{ c.nombre_completo }}"
@@ -300,23 +307,106 @@
         </div>
     </div>
 
+    <!-- MODAL EDITAR COMPETIDOR -->
+    <div class="modal-overlay" id="modalEditarOverlay" onclick="cerrarModalEditar()">
+        <div class="modal-detalle" id="modalEditar" onclick="event.stopPropagation()">
+            <button class="modal-cerrar" onclick="cerrarModalEditar()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="modal-header">
+                <h2 class="modal-nombre">EDITAR COMPETIDOR</h2>
+            </div>
+            <div class="modal-linea-roja"></div>
+            <div class="modal-body">
+                <form id="formEditarCompetidor" method="POST">
+                    <div class="modal-grid">
+                        <div class="modal-dato">
+                            <label>NOMBRE COMPLETO</label>
+                            <input type="text" id="editarFullName" name="full_name" required>
+                        </div>
+                        <div class="modal-dato">
+                            <label>TIPO DE DOCUMENTO</label>
+                            <select id="editarDocumentType" name="document_type" required>
+                                <option value="">SELECCIONE UNA OPCIÓN</option>
+                                <option value="cc">C.C</option>
+                                <option value="ce">C.E</option>
+                                <option value="passport">PASAPORTE</option>
+                            </select>
+                        </div>
+                        <div class="modal-dato">
+                            <label>NÚMERO DE DOCUMENTO</label>
+                            <input type="text" id="editarDocumentNumber" name="document_number" required>
+                        </div>
+                        <div class="modal-dato">
+                            <label>FECHA DE NACIMIENTO</label>
+                            <input type="date" id="editarBirthDate" name="birth_date" required>
+                        </div>
+                        <div class="modal-dato">
+                            <label>CIUDAD</label>
+                            <input type="text" id="editarCity" name="city" required>
+                        </div>
+                        <div class="modal-dato">
+                            <label>TELÉFONO</label>
+                            <input type="tel" id="editarPhone" name="phone" required pattern="[0-9]{10}" minlength="10" maxlength="10" inputmode="numeric" title="Debe ingresar exactamente 10 dígitos numéricos">
+                        </div>
+                        <div class="modal-dato">
+                            <label>CORREO ELECTRÓNICO</label>
+                            <input type="email" id="editarEmail" name="email" required pattern=".+@.+" title="Debe contener @ y un dominio válido">
+                        </div>
+                        <div class="modal-dato">
+                            <label>EQUIPO</label>
+                            <input type="text" id="editarTeam" name="team">
+                        </div>
+                        <div class="modal-dato">
+                            <label>EXPERIENCIA</label>
+                            <select id="editarExperience" name="experience" required>
+                                <option value="">SELECCIONE UNA OPCIÓN</option>
+                                <option value="si">SÍ</option>
+                                <option value="no">NO</option>
+                            </select>
+                        </div>
+                        <div class="modal-dato">
+                            <label>MARCA DE LA MOTO</label>
+                            <input type="text" id="editarMotorcycleBrand" name="motorcycle_brand" required>
+                        </div>
+                        <div class="modal-dato">
+                            <label>MODELO DE LA MOTO</label>
+                            <input type="text" id="editarMotorcycleModel" name="motorcycle_model" required>
+                        </div>
+                        <div class="modal-dato">
+                            <label>CILINDRAJE (CC)</label>
+                            <input type="number" id="editarEngineCc" name="engine_cc" required>
+                        </div>
+                        <div class="modal-dato">
+                            <label>NÚMERO DEL COMPETIDOR</label>
+                            <input type="number" id="editarCompetitorNumber" name="competitor_number" required>
+                        </div>
+                    </div>
+                    <div class="contenedor-terminos" style="margin-top: 20px; padding: 0;">
+                        <button type="submit" class="boton-registro">ACTUALIZAR COMPETIDOR</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- DATOS JSON PARA JAVASCRIPT -->
     <script id="datosCompetidores" type="application/json">
     [
         {% for c in competidores %}
         {
             "id": {{ c.id }},
-            "nombre_completo": "{{ c.nombre_completo }}",
-            "tipo_documento": "{{ c.tipo_documento }}",
-            "numero_documento": "{{ c.numero_documento }}",
-            "fecha_nacimiento": "{{ c.fecha_nacimiento }}",
-            "ciudad": "{{ c.ciudad }}",
-            "telefono": "{{ c.telefono }}",
-            "correo": "{{ c.correo }}",
-            "equipo": "{{ c.equipo if c.equipo else '' }}",
-            "experiencia": "{{ c.experiencia }}",
-            "marca_motocicleta": "{{ c.marca_motocicleta }}",
-            "modelo_motocicleta": "{{ c.modelo_motocicleta }}",
+            "nombre_completo": {{ c.nombre_completo | tojson }},
+            "tipo_documento": {{ c.tipo_documento | tojson }},
+            "numero_documento": {{ c.numero_documento | tojson }},
+            "fecha_nacimiento": {{ c.fecha_nacimiento | tojson }},
+            "ciudad": {{ c.ciudad | tojson }},
+            "telefono": {{ c.telefono | tojson }},
+            "correo": {{ c.correo | tojson }},
+            "equipo": {{ c.equipo | default('') | tojson }},
+            "experiencia": {{ c.experiencia | tojson }},
+            "marca_motocicleta": {{ c.marca_motocicleta | tojson }},
+            "modelo_motocicleta": {{ c.modelo_motocicleta | tojson }},
             "cilindraje_motor": {{ c.cilindraje_motor }},
             "numero_competidor": {{ c.numero_competidor }}
         }{% if not loop.last %},{% endif %}

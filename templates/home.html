@@ -195,11 +195,11 @@
                     </div>
                     <div class="grupo-formulario">
                         <label>TELÉFONO</label>
-                        <input type="text" name="phone" required>
+                        <input type="tel" name="phone" required pattern="[0-9]{10}" minlength="10" maxlength="10" inputmode="numeric" title="Debe ingresar exactamente 10 dígitos numéricos">
                     </div>
                     <div class="grupo-formulario">
                         <label>CORREO ELECTRÓNICO</label>
-                        <input type="email" name="email" required>
+                        <input type="email" name="email" required pattern=".+@.+" title="Debe contener @ y un dominio válido">
                     </div>
                     <div class="grupo-formulario">
                         <label>NOMBRE DEL EQUIPO O ESCUDERÍA</label>

@@ -86,6 +86,18 @@ def registrar_competidor(
     session: Session = Depends(get_session)
 
 ):
+    if not phone.isdigit() or len(phone) != 10:
+        return RedirectResponse(
+            url="/?error=telefono_invalido",
+            status_code=303
+        )
+
+    if "@" not in email:
+        return RedirectResponse(
+            url="/?error=email_invalido",
+            status_code=303
+        )
+
     fecha_convertida = datetime.strptime(birth_date, "%Y-%m-%d").date()
 
     # ==========================================
@@ -113,7 +125,6 @@ def registrar_competidor(
         )
 
     # 3. NUEVA: Validación de Nombre Completo
-    # Se recomienda usar .lower() o una comparación insensible a mayúsculas si tu DB lo permite
     existe_nombre = session.exec(
         select(Competidor.id).where(Competidor.nombre_completo == full_name)
     ).first()
@@ -123,8 +134,6 @@ def registrar_competidor(
             status_code=303
         )
 
-    # (Opcional) Validación combinada final revisada
-    # Esto sirve como una última malla de seguridad antes de insertar
     existe_alguno = session.exec(
         select(Competidor.id).where(
             or_(
@@ -140,33 +149,33 @@ def registrar_competidor(
             url="/?error=registro_duplicado",
             status_code=303
         )
+
     # ==========================================
     # CREACIÓN DEL OBJETO COMPETIDOR
     # ==========================================
 
     nuevo_competidor = Competidor(
 
-        id = None,
-        nombre_completo = full_name,
-        tipo_documento = document_type,
-        numero_documento = document_number,
-        fecha_nacimiento = fecha_convertida,
-        ciudad = city,
-        telefono = phone,
-        correo = email,
+        id=None,
+        nombre_completo=full_name,
+        tipo_documento=document_type,
+        numero_documento=document_number,
+        fecha_nacimiento=fecha_convertida,
+        ciudad=city,
+        telefono=phone,
+        correo=email,
 
-        equipo = team,
-        experiencia = experience,
+        equipo=team,
+        experiencia=experience,
 
-        marca_motocicleta = motorcycle_brand,
-        modelo_motocicleta = motorcycle_model,
-        cilindraje_motor = engine_cc,
-        numero_competidor = competitor_number,
+        marca_motocicleta=motorcycle_brand,
+        modelo_motocicleta=motorcycle_model,
+        cilindraje_motor=engine_cc,
+        numero_competidor=competitor_number,
 
-        acepta_terminos = terms
+        acepta_terminos=terms
 
     )
-
 
     # ==========================================
     # GUARDAR EN BASE DE DATOS
@@ -176,13 +185,127 @@ def registrar_competidor(
     session.commit()
     session.refresh(nuevo_competidor)
 
-
     # ==========================================
     # REDIRECCIÓN A LA PÁGINA PRINCIPAL
     # ==========================================
 
     return RedirectResponse(
         url="/?registro=exitoso",
+        status_code=303
+    )
+
+
+@app.post("/update_competidor/{competidor_id}")
+def actualizar_competidor(
+    competidor_id: int,
+    full_name: str = Form(...),
+    document_type: str = Form(...),
+    document_number: str = Form(...),
+    birth_date: str = Form(...),
+    city: str = Form(...),
+    phone: str = Form(...),
+    email: str = Form(...),
+    team: str = Form(None),
+    experience: str = Form(...),
+    motorcycle_brand: str = Form(...),
+    motorcycle_model: str = Form(...),
+    engine_cc: int = Form(...),
+    competitor_number: int = Form(...),
+    session: Session = Depends(get_session)
+):
+    competidor = session.get(Competidor, competidor_id)
+    if not competidor:
+        return RedirectResponse(
+            url="/carreras?error=competidor_no_encontrado",
+            status_code=303
+        )
+
+    if not phone.isdigit() or len(phone) != 10:
+        return RedirectResponse(
+            url="/carreras?error=telefono_invalido",
+            status_code=303
+        )
+
+    if "@" not in email:
+        return RedirectResponse(
+            url="/carreras?error=email_invalido",
+            status_code=303
+        )
+
+    fecha_convertida = datetime.strptime(birth_date, "%Y-%m-%d").date()
+
+    existe_cedula = session.exec(
+        select(Competidor.id).where(
+            Competidor.numero_documento == document_number,
+            Competidor.id != competidor_id
+        )
+    ).first()
+    if existe_cedula is not None:
+        return RedirectResponse(
+            url="/carreras?error=cedula_existente",
+            status_code=303
+        )
+
+    existe_numero_competidor = session.exec(
+        select(Competidor.id).where(
+            Competidor.numero_competidor == competitor_number,
+            Competidor.id != competidor_id
+        )
+    ).first()
+    if existe_numero_competidor is not None:
+        return RedirectResponse(
+            url="/carreras?error=numero_competidor_existente",
+            status_code=303
+        )
+
+    existe_nombre = session.exec(
+        select(Competidor.id).where(
+            Competidor.nombre_completo == full_name,
+            Competidor.id != competidor_id
+        )
+    ).first()
+    if existe_nombre is not None:
+        return RedirectResponse(
+            url="/carreras?error=nombre_existente",
+            status_code=303
+        )
+
+    existe_alguno = session.exec(
+        select(Competidor.id).where(
+            or_(
+                Competidor.numero_documento == document_number,
+                Competidor.numero_competidor == competitor_number,
+                Competidor.nombre_completo == full_name
+            ),
+            Competidor.id != competidor_id
+        )
+    ).first()
+    if existe_alguno is not None:
+        return RedirectResponse(
+            url="/carreras?error=registro_duplicado",
+            status_code=303
+        )
+
+    competidor.nombre_completo = full_name
+    competidor.tipo_documento = document_type
+    competidor.numero_documento = document_number
+    competidor.fecha_nacimiento = fecha_convertida
+    competidor.ciudad = city
+    competidor.telefono = phone
+    competidor.correo = email
+    competidor.equipo = team or None
+    competidor.experiencia = experience
+    competidor.marca_motocicleta = motorcycle_brand
+    competidor.modelo_motocicleta = motorcycle_model
+    competidor.cilindraje_motor = engine_cc
+    competidor.numero_competidor = competitor_number
+
+    session.add(competidor)
+    session.commit()
+    session.refresh(competidor)
+
+    return RedirectResponse(
+        url="/carreras?actualizacion=exitosa",
         status_code=303
     )
 
